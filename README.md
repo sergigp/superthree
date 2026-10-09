@@ -1,8 +1,18 @@
 # Superthree
 
-<img width="335" height="314" alt="image" src="https://github.com/user-attachments/assets/cd18b296-d3a2-443a-ad5a-9c259654c76b" />
+<h1>
+<p align="center">
+  <img width="335" height="314" alt="image" src="https://github.com/user-attachments/assets/cd18b296-d3a2-443a-ad5a-9c259654c76b" />
+</p>
+</h1>
+  <p align="center">
+    A self-hosted, broadcast-style TV channel for kids.
+    <br />
+  </p>
+</p>
 
-A self-hosted, broadcast-style TV channel for kids.
+
+## About
 
 A parent builds the schedule; the child just turns on the TV and watches whatever is on. No menus, no thumbnails, no "one more episode" — like a real channel, but with content you picked.
 
