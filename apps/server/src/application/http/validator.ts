@@ -12,5 +12,7 @@ export function validate<T extends 'json' | 'param', S extends z.ZodType>(target
 }
 
 function toErrorMessage(issues: readonly z.core.$ZodIssue[]): string {
-  return issues.map((issue) => `${issue.path.map(String).join('.')}: ${issue.message}`).join('; ');
+  return issues
+    .map((issue) => (issue.path.length === 0 ? issue.message : `${issue.path.map(String).join('.')}: ${issue.message}`))
+    .join('; ');
 }

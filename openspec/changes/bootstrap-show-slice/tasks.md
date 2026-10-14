@@ -24,7 +24,7 @@
 - [x] 2.18 `shows.test.ts` `should update a show to a case variant of its own name` — drives `withName` and the own-id exception.
 - [x] 2.19 `shows.test.ts` `should fail to update if name is taken` — drives the update name check and 409.
 - [x] 2.20 `shows.test.ts` `should fail to update if show missing` — drives update's 404.
-- [ ] 2.21 `shows.test.ts` `should fail to update if patch is empty` — drives `UpdateShowRequest`'s refine.
+- [x] 2.21 `shows.test.ts` `should fail to update if patch is empty` — drives `UpdateShowRequest`'s refine.
 - [ ] 2.22 `shows.test.ts` `should delete a show` — drives `ShowDeleter` and repository `delete`.
 - [ ] 2.23 `shows.test.ts` `should fail to delete if show missing` — drives delete's 404.
 - [ ] 2.24 `outbox-dispatcher.test.ts` `should dispatch pending events in order` — drives `dispatchPending`, `pending`, `markProcessed`.

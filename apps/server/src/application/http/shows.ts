@@ -14,7 +14,9 @@ import { validate } from './validator.ts';
 
 const ShowIdParam = z.object({ id: ShowId });
 const CreateShowRequest = z.object({ name: ShowName, audioLanguage: AudioLanguage });
-const UpdateShowRequest = z.object({ name: ShowName.optional(), audioLanguage: AudioLanguage.optional() });
+const UpdateShowRequest = z
+  .object({ name: ShowName.optional(), audioLanguage: AudioLanguage.optional() })
+  .refine((patch) => patch.name !== undefined || patch.audioLanguage !== undefined, 'Patch must change name or audioLanguage');
 
 export interface ShowResponse {
   id: string;

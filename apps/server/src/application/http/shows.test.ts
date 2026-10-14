@@ -210,6 +210,18 @@ it('should fail to update if show missing', async () => {
   });
 });
 
+it('should fail to update if patch is empty', async () => {
+  const db = unmigratedTestDatabase();
+  const client = testClient(createRoutes(createSqliteShowRepository(db), createSqliteTransactor(db, fixedClock(now))));
+
+  const response = await client[':id'].$patch({ param: { id: missingId }, json: {} });
+
+  expect({ status: response.status, body: await response.json() }).toEqual({
+    status: 400,
+    body: { error: 'Patch must change name or audioLanguage' },
+  });
+});
+
 function createRoutes(shows: ShowRepository, transactor: Transactor) {
   return createShowRoutes({
     finder: createShowFinder(shows),
