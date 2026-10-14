@@ -14,7 +14,7 @@ import {
 import { fixedClock } from '../../infrastructure/shared/clock.ts';
 import { sequentialIds } from '../../infrastructure/shared/id-generator.ts';
 import { createSqliteOutboxRepository } from '../../infrastructure/shared/outbox-repository.ts';
-import { testDatabase } from '../../infrastructure/shared/test-database.ts';
+import { testDatabase, unmigratedTestDatabase } from '../../infrastructure/shared/test-database.ts';
 import { createSqliteTransactor, type Transactor } from '../../infrastructure/shared/transactor.ts';
 import { createShowRoutes } from './shows.ts';
 
@@ -97,6 +97,18 @@ it('should fail to create if name differs only in case', async () => {
   });
   expect(await shows.list()).toEqual([bluey]);
   expect(await outbox.list()).toEqual([]);
+});
+
+it('should fail to create if request is invalid', async () => {
+  const db = unmigratedTestDatabase();
+  const client = testClient(createRoutes(createSqliteShowRepository(db), createSqliteTransactor(db, fixedClock(now))));
+
+  const response = await client.index.$post({ json: { name: '  ', audioLanguage: 'en' } });
+
+  expect({ status: response.status, body: await response.json() }).toEqual({
+    status: 400,
+    body: { error: 'name: Too small: expected string to have >=1 characters' },
+  });
 });
 
 function createRoutes(shows: ShowRepository, transactor: Transactor) {
