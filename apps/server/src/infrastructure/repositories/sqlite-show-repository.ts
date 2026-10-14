@@ -16,7 +16,8 @@ export interface ShowRepository {
 
 export function createSqliteShowRepository(db: Kysely<Database>): ShowRepository {
   return {
-    list: async () => (await db.selectFrom('shows').selectAll().execute()).map(toShow),
+    list: async () =>
+      (await db.selectFrom('shows').selectAll().orderBy(sql`name COLLATE NOCASE`).execute()).map(toShow),
     findById: (_id) => Promise.resolve(undefined),
     findByName: async (name) => {
       const row = await db

@@ -11,9 +11,9 @@ export interface ShowFinder {
   get(id: ShowId): Promise<Result<Show, GetShowError>>;
 }
 
-export function createShowFinder(_shows: ShowRepository): ShowFinder {
+export function createShowFinder(shows: ShowRepository): ShowFinder {
   return {
-    list: () => Promise.resolve([]),
+    list: () => shows.list(),
     get: (id) =>
       Promise.resolve(
         Result.ok({ id, name: ShowName.parse('Placeholder'), audioLanguage: 'en', createdAt: '1970-01-01T00:00:00.000Z' }),

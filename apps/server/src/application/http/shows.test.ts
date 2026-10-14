@@ -111,6 +111,22 @@ it('should fail to create if request is invalid', async () => {
   });
 });
 
+it('should list all shows sorted by name', async () => {
+  const db = await testDatabase();
+  const shows = createSqliteShowRepository(db);
+  const peppa = aShow({ id: '11111111-1111-4111-8111-000000000001', name: 'peppa' });
+  const bluey = aShow({ id: '11111111-1111-4111-8111-000000000002', name: 'Bluey', audioLanguage: 'ca' });
+  const caillou = aShow({ id: '11111111-1111-4111-8111-000000000003', name: 'Caillou', audioLanguage: 'es' });
+  await shows.insert(peppa);
+  await shows.insert(bluey);
+  await shows.insert(caillou);
+  const client = testClient(createRoutes(shows, createSqliteTransactor(db, fixedClock(now))));
+
+  const response = await client.index.$get();
+
+  expect({ status: response.status, body: await response.json() }).toEqual({ status: 200, body: [bluey, caillou, peppa] });
+});
+
 function createRoutes(shows: ShowRepository, transactor: Transactor) {
   return createShowRoutes({
     finder: createShowFinder(shows),
