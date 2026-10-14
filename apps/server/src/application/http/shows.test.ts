@@ -1,4 +1,5 @@
 import { AudioLanguage } from '@superthree/domain/show/audio-language';
+import { Show } from '@superthree/domain/show/show';
 import fc from 'fast-check';
 import { testClient } from 'hono/testing';
 import { expect, it } from 'vitest';
@@ -19,6 +20,7 @@ import { createShowRoutes } from './shows.ts';
 
 const now = new Date('2026-10-14T10:00:00.000Z');
 const firstId = '00000000-0000-4000-8000-000000000001';
+const seededAt = '2026-10-01T09:00:00.000Z';
 
 it('should create a show', async () => {
   const db = await testDatabase();
@@ -61,11 +63,39 @@ it('should create any valid show with its trimmed name', async () => {
   );
 });
 
+it('should fail to create if name is taken', async () => {
+  const db = await testDatabase();
+  const shows = createSqliteShowRepository(db);
+  const outbox = createSqliteOutboxRepository(db);
+  const bluey = aShow({ name: 'Bluey' });
+  await shows.insert(bluey);
+  const client = testClient(createRoutes(shows, createSqliteTransactor(db, fixedClock(now))));
+
+  const response = await client.index.$post({ json: { name: 'Bluey', audioLanguage: 'en' } });
+
+  expect({ status: response.status, body: await response.json() }).toEqual({
+    status: 409,
+    body: { error: 'A show named Bluey already exists' },
+  });
+  expect(await shows.list()).toEqual([bluey]);
+  expect(await outbox.list()).toEqual([]);
+});
+
 function createRoutes(shows: ShowRepository, transactor: Transactor) {
   return createShowRoutes({
     finder: createShowFinder(shows),
     creator: createShowCreator(shows, transactor, fixedClock(now), sequentialIds()),
     updater: createShowUpdater(shows),
     deleter: createShowDeleter(shows),
+  });
+}
+
+function aShow(overrides: { id?: string; name?: string; audioLanguage?: AudioLanguage }): Show {
+  return Show.parse({
+    id: '11111111-1111-4111-8111-111111111111',
+    name: 'Bluey',
+    audioLanguage: 'en',
+    createdAt: seededAt,
+    ...overrides,
   });
 }

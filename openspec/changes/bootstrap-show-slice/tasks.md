@@ -14,7 +14,7 @@
 - [x] 2.8 `health.test.ts` `should report the server is up` — drives `GET /api/health`.
 - [x] 2.9 `shows.test.ts` `should create a show` — drives `ShowCreator`, `createShow`, `toShowResponse`, show insert and `ShowCreated` publish inside `transactor.run`.
 - [x] 2.10 `shows.test.ts` `should create any valid show with its trimmed name` — fast-check property over the create route.
-- [ ] 2.11 `shows.test.ts` `should fail to create if name is taken` — drives `findByName` check and the 409 mapping; no outbox row.
+- [x] 2.11 `shows.test.ts` `should fail to create if name is taken` — drives `findByName` check and the 409 mapping; no outbox row.
 - [ ] 2.12 `shows.test.ts` `should fail to create if name differs only in case` — drives case-insensitive `findByName`.
 - [ ] 2.13 `shows.test.ts` `should fail to create if request is invalid` — drives the validator hook's `{ error }` 400.
 - [ ] 2.14 `shows.test.ts` `should list all shows sorted by name` — drives `ShowFinder.list` and case-insensitive ordering.

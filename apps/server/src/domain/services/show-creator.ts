@@ -7,7 +7,7 @@ import type { ShowRepository } from '../../infrastructure/repositories/sqlite-sh
 import type { Clock } from '../../infrastructure/shared/clock.ts';
 import type { IdGenerator } from '../../infrastructure/shared/id-generator.ts';
 import type { Transactor } from '../../infrastructure/shared/transactor.ts';
-import type { CreateShowError } from '../show/errors.ts';
+import { ShowNameTaken, type CreateShowError } from '../show/errors.ts';
 import { showCreated } from '../show/show-created.ts';
 
 export interface ShowCreator {
@@ -16,19 +16,27 @@ export interface ShowCreator {
 }
 
 export function createShowCreator(
-  _shows: ShowRepository,
+  shows: ShowRepository,
   transactor: Transactor,
   clock: Clock,
   ids: IdGenerator,
 ): ShowCreator {
   return {
-    create: async (name, audioLanguage) => {
-      const show = createShow(ShowId.parse(ids.next()), name, audioLanguage, clock.now());
-      await transactor.run(async ({ shows, events }) => {
-        await shows.insert(show);
-        await events.publish(showCreated(show, clock.now()));
-      });
-      return Result.ok(show);
-    },
+    create: (name, audioLanguage) =>
+      Result.gen(async function* () {
+        yield* Result.await(ensureNameAvailable(shows, name));
+        const show = createShow(ShowId.parse(ids.next()), name, audioLanguage, clock.now());
+        await transactor.run(async (scope) => {
+          await scope.shows.insert(show);
+          await scope.events.publish(showCreated(show, clock.now()));
+        });
+        return Result.ok(show);
+      }),
   };
+}
+
+async function ensureNameAvailable(shows: ShowRepository, name: ShowName): Promise<Result<void, ShowNameTaken>> {
+  return (await shows.findByName(name)) === undefined
+    ? Result.ok(undefined)
+    : Result.err(new ShowNameTaken({ name, message: `A show named ${name} already exists` }));
 }
