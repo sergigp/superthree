@@ -21,6 +21,6 @@ export function withName(show: Show, _name: ShowName): Show {
   return show;
 }
 
-export function withAudioLanguage(show: Show, _audioLanguage: AudioLanguage): Show {
-  return show;
+export function withAudioLanguage(show: Show, audioLanguage: AudioLanguage): Show {
+  return { ...show, audioLanguage };
 }

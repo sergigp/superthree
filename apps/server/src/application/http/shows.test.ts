@@ -152,6 +152,20 @@ it('should fail to get if show missing', async () => {
   });
 });
 
+it('should update a show', async () => {
+  const db = await testDatabase();
+  const shows = createSqliteShowRepository(db);
+  const bluey = aShow({ name: 'Bluey', audioLanguage: 'en' });
+  await shows.insert(bluey);
+  const client = testClient(createRoutes(shows, createSqliteTransactor(db, fixedClock(now))));
+
+  const response = await client[':id'].$patch({ param: { id: bluey.id }, json: { audioLanguage: 'ca' } });
+
+  const updated = { ...bluey, audioLanguage: 'ca' };
+  expect({ status: response.status, body: await response.json() }).toEqual({ status: 200, body: updated });
+  expect(await shows.list()).toEqual([updated]);
+});
+
 function createRoutes(shows: ShowRepository, transactor: Transactor) {
   return createShowRoutes({
     finder: createShowFinder(shows),

@@ -20,7 +20,7 @@
 - [x] 2.14 `shows.test.ts` `should list all shows sorted by name` — drives `ShowFinder.list` and case-insensitive ordering.
 - [x] 2.15 `shows.test.ts` `should get a show` — drives `ShowFinder.get` and `findById`.
 - [x] 2.16 `shows.test.ts` `should fail to get if show missing` — drives `ShowNotFound` and the 404 mapping.
-- [ ] 2.17 `shows.test.ts` `should update a show` — drives `ShowUpdater`, `withAudioLanguage`, repository `update`.
+- [x] 2.17 `shows.test.ts` `should update a show` — drives `ShowUpdater`, `withAudioLanguage`, repository `update`.
 - [ ] 2.18 `shows.test.ts` `should update a show to a case variant of its own name` — drives `withName` and the own-id exception.
 - [ ] 2.19 `shows.test.ts` `should fail to update if name is taken` — drives the update name check and 409.
 - [ ] 2.20 `shows.test.ts` `should fail to update if show missing` — drives update's 404.

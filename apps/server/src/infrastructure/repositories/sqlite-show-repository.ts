@@ -33,7 +33,13 @@ export function createSqliteShowRepository(db: Kysely<Database>): ShowRepository
     insert: async (show) => {
       await db.insertInto('shows').values(toRow(show)).execute();
     },
-    update: (_show) => Promise.resolve(),
+    update: async (show) => {
+      await db
+        .updateTable('shows')
+        .set({ name: show.name, audio_language: show.audioLanguage })
+        .where('id', '=', show.id)
+        .execute();
+    },
     delete: (_id) => Promise.resolve(),
   };
 }

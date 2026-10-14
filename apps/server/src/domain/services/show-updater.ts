@@ -1,6 +1,5 @@
-import type { Show } from '@superthree/domain/show/show';
+import { withAudioLanguage, withName, type Show } from '@superthree/domain/show/show';
 import type { ShowId } from '@superthree/domain/show/show-id';
-import { ShowName } from '@superthree/domain/show/show-name';
 import { Result } from 'better-result';
 import type { ShowRepository } from '../../infrastructure/repositories/sqlite-show-repository.ts';
 import type { UpdateShowError } from '../show/errors.ts';
@@ -11,11 +10,21 @@ export interface ShowUpdater {
   update(id: ShowId, patch: ShowPatch): Promise<Result<Show, UpdateShowError>>;
 }
 
-export function createShowUpdater(_shows: ShowRepository): ShowUpdater {
+export function createShowUpdater(shows: ShowRepository): ShowUpdater {
   return {
-    update: (id, _patch) =>
-      Promise.resolve(
-        Result.ok({ id, name: ShowName.parse('Placeholder'), audioLanguage: 'en', createdAt: '1970-01-01T00:00:00.000Z' }),
-      ),
+    update: async (id, patch) => {
+      const show = await shows.findById(id);
+      if (show === undefined) {
+        throw new Error(`Show ${id} not found`);
+      }
+      const updated = applyPatch(show, patch);
+      await shows.update(updated);
+      return Result.ok(updated);
+    },
   };
+}
+
+function applyPatch(show: Show, patch: ShowPatch): Show {
+  const renamed = patch.name === undefined ? show : withName(show, patch.name);
+  return patch.audioLanguage === undefined ? renamed : withAudioLanguage(renamed, patch.audioLanguage);
 }
