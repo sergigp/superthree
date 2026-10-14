@@ -11,7 +11,6 @@
   </p>
 </p>
 
-
 ## About
 
 A parent builds the schedule; the child just turns on the TV and watches whatever is on. No menus, no thumbnails, no "one more episode" — like a real channel, but with content you picked.
@@ -47,3 +46,15 @@ Early stage, built as a proof of concept in phases:
 1. One hand-segmented episode served from a Mac to the Apple TV
 2. The same, served from a Docker container on the NAS
 3. Ingest running inside the container
+
+## Running locally
+
+Requires Node 24+ (see `.nvmrc`) and pnpm.
+
+```sh
+scripts/run-local.sh            # build the web UI and serve everything on http://localhost:8080
+scripts/run-local.sh --fresh-db # same, with a throwaway database
+pnpm dev                        # hot reload: server on :8080 + Vite dev server proxying /api
+```
+
+`run-local.sh` keeps the SQLite database in `data/` (gitignored) and reads an optional `.env` in the repo root. Run `scripts/run-local.sh --help` for all options.
