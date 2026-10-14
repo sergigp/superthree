@@ -180,6 +180,24 @@ it('should update a show to a case variant of its own name', async () => {
   expect(await shows.list()).toEqual([updated]);
 });
 
+it('should fail to update if name is taken', async () => {
+  const db = await testDatabase();
+  const shows = createSqliteShowRepository(db);
+  const bluey = aShow({ id: '11111111-1111-4111-8111-000000000001', name: 'Bluey' });
+  const peppa = aShow({ id: '11111111-1111-4111-8111-000000000002', name: 'Peppa' });
+  await shows.insert(bluey);
+  await shows.insert(peppa);
+  const client = testClient(createRoutes(shows, createSqliteTransactor(db, fixedClock(now))));
+
+  const response = await client[':id'].$patch({ param: { id: peppa.id }, json: { name: 'bluey' } });
+
+  expect({ status: response.status, body: await response.json() }).toEqual({
+    status: 409,
+    body: { error: 'A show named bluey already exists' },
+  });
+  expect(await shows.list()).toEqual([bluey, peppa]);
+});
+
 function createRoutes(shows: ShowRepository, transactor: Transactor) {
   return createShowRoutes({
     finder: createShowFinder(shows),
