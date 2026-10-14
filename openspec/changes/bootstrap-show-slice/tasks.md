@@ -5,7 +5,7 @@
 ## 2. Behaviour (TDD)
 
 - [x] 2.1 `show-name.test.ts` `should trim a valid name` — drives `ShowName` trimming.
-- [ ] 2.2 `show-name.test.ts` `should accept a name of 100 characters` — drives the upper bound.
+- [x] 2.2 `show-name.test.ts` `should accept a name of 100 characters` — drives the upper bound.
 - [ ] 2.3 `show-name.test.ts` `should reject a blank name` — drives `min(1)` after trim.
 - [ ] 2.4 `show-name.test.ts` `should reject a name over 100 characters` — drives `max(100)`.
 - [ ] 2.5 `audio-language.test.ts` `should accept supported languages` — drives the `ca`/`es`/`en` enum.
