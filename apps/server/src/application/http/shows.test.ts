@@ -1,3 +1,5 @@
+import { AudioLanguage } from '@superthree/domain/show/audio-language';
+import fc from 'fast-check';
 import { testClient } from 'hono/testing';
 import { expect, it } from 'vitest';
 import { createShowCreator } from '../../domain/services/show-creator.ts';
@@ -37,6 +39,26 @@ it('should create a show', async () => {
       processedAt: undefined,
     },
   ]);
+});
+
+it('should create any valid show with its trimmed name', async () => {
+  await fc.assert(
+    fc.asyncProperty(
+      fc.string({ minLength: 1, maxLength: 100 }).filter((name) => name.trim().length > 0),
+      fc.constantFrom(...AudioLanguage.options),
+      async (name, audioLanguage) => {
+        const db = await testDatabase();
+        const shows = createSqliteShowRepository(db);
+        const client = testClient(createRoutes(shows, createSqliteTransactor(db, fixedClock(now))));
+
+        const response = await client.index.$post({ json: { name, audioLanguage } });
+
+        const show = { id: firstId, name: name.trim(), audioLanguage, createdAt: now.toISOString() };
+        expect({ status: response.status, body: await response.json() }).toEqual({ status: 201, body: show });
+        expect(await shows.list()).toEqual([show]);
+      },
+    ),
+  );
 });
 
 function createRoutes(shows: ShowRepository, transactor: Transactor) {
