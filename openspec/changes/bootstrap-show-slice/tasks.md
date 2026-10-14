@@ -8,7 +8,7 @@
 - [x] 2.2 `show-name.test.ts` `should accept a name of 100 characters` — drives the upper bound.
 - [x] 2.3 `show-name.test.ts` `should reject a blank name` — drives `min(1)` after trim.
 - [x] 2.4 `show-name.test.ts` `should reject a name over 100 characters` — drives `max(100)`.
-- [ ] 2.5 `audio-language.test.ts` `should accept supported languages` — drives the `ca`/`es`/`en` enum.
+- [x] 2.5 `audio-language.test.ts` `should accept supported languages` — drives the `ca`/`es`/`en` enum.
 - [ ] 2.6 `audio-language.test.ts` `should reject an unsupported language` — drives the enum's rejection.
 - [ ] 2.7 `show-id.test.ts` `should accept a uuid` and `should reject a non-uuid` (one cycle each) — drives `ShowId`.
 - [ ] 2.8 `health.test.ts` `should report the server is up` — drives `GET /api/health`.
