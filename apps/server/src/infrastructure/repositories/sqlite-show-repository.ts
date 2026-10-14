@@ -1,7 +1,7 @@
 import { Show } from '@superthree/domain/show/show';
 import type { ShowId } from '@superthree/domain/show/show-id';
 import type { ShowName } from '@superthree/domain/show/show-name';
-import type { Kysely, Selectable } from 'kysely';
+import { sql, type Kysely, type Selectable } from 'kysely';
 import type { Database, ShowsTable } from '../shared/database.ts';
 
 export interface ShowRepository {
@@ -19,7 +19,11 @@ export function createSqliteShowRepository(db: Kysely<Database>): ShowRepository
     list: async () => (await db.selectFrom('shows').selectAll().execute()).map(toShow),
     findById: (_id) => Promise.resolve(undefined),
     findByName: async (name) => {
-      const row = await db.selectFrom('shows').selectAll().where('name', '=', name).executeTakeFirst();
+      const row = await db
+        .selectFrom('shows')
+        .selectAll()
+        .where(sql<boolean>`name = ${name} COLLATE NOCASE`)
+        .executeTakeFirst();
       return row === undefined ? undefined : toShow(row);
     },
     insert: async (show) => {

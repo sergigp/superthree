@@ -81,6 +81,24 @@ it('should fail to create if name is taken', async () => {
   expect(await outbox.list()).toEqual([]);
 });
 
+it('should fail to create if name differs only in case', async () => {
+  const db = await testDatabase();
+  const shows = createSqliteShowRepository(db);
+  const outbox = createSqliteOutboxRepository(db);
+  const bluey = aShow({ name: 'Bluey' });
+  await shows.insert(bluey);
+  const client = testClient(createRoutes(shows, createSqliteTransactor(db, fixedClock(now))));
+
+  const response = await client.index.$post({ json: { name: 'BLUEY', audioLanguage: 'en' } });
+
+  expect({ status: response.status, body: await response.json() }).toEqual({
+    status: 409,
+    body: { error: 'A show named BLUEY already exists' },
+  });
+  expect(await shows.list()).toEqual([bluey]);
+  expect(await outbox.list()).toEqual([]);
+});
+
 function createRoutes(shows: ShowRepository, transactor: Transactor) {
   return createShowRoutes({
     finder: createShowFinder(shows),
