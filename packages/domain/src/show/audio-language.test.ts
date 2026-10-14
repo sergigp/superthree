@@ -8,3 +8,9 @@ it('should accept supported languages', () => {
     { success: true, data: 'en' },
   ]);
 });
+
+it('should reject an unsupported language', () => {
+  expect(AudioLanguage.safeParse('fr').error?.issues.map((issue) => issue.message)).toEqual([
+    'Invalid option: expected one of "ca"|"es"|"en"',
+  ]);
+});
