@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Superthree: self-hosted, broadcast-style TV channel for kids. Parent builds a schedule in a web UI; server generates an M3U/HLS playlist consumed by an IPTV client (Apple TV). Runs in a single Docker container on a Synology NAS.
 
-Early stage, no code yet. See `README.md` (pipeline, PoC phases) and `TECH_STACK.md` (stack decisions and rationale) — keep them in sync when decisions change.
+Early stage, no code yet. See `README.md` (pipeline, PoC phases) and `doc/TECH_STACK.md` (stack decisions and rationale) — keep them in sync when decisions change.
 
 ## Architecture
 
@@ -25,3 +25,9 @@ Pure functional core (scheduler, playlist generation); effects at the edges (HTT
 - Domain events via in-house SQLite outbox, written in same transaction as the change; handlers must be idempotent.
 - Shared domain types live in a `domain` workspace package; frontend uses Hono RPC client.
 - Tests: Vitest + fast-check (property-based for scheduler invariants).
+
+- add tests about reconciling an existing channel lowering and raising the video limit.so
+
+- add edit settings in sidebar for each channel
+- in edit settigns form, when quality is changed add an info message that it will apply to new videos only
+- in edit settings form, change title from Edit Channel to Edit $channelName settings
