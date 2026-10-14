@@ -175,7 +175,7 @@ export interface Transactor {
   /** Commits if work resolves, rolls back if it throws. Business checks happen before run; no Result inside. */
   run<T>(work: (scope: TransactionScope) => Promise<T>): Promise<T>;
 }
-export function createSqliteTransactor(db: Kysely<Database>): Transactor;
+export function createSqliteTransactor(db: Kysely<Database>, clock: Clock): Transactor; // clock feeds the scope's EventPublisher
 
 // apps/server/src/infrastructure/shared/event-publisher.ts
 export interface EventPublisher { publish(event: DomainEvent): Promise<void> }
@@ -216,7 +216,7 @@ export type Config = z.infer<typeof Config>;
 export function loadConfig(env: NodeJS.ProcessEnv): Config; // throws on invalid env
 
 // apps/server/src/application/http/validator.ts
-export function validate<T extends 'json' | 'param', S extends z.ZodType>(target: T, schema: S): MiddlewareHandler; // 400 { error: string }
+export function validate<T extends 'json' | 'param', S extends z.ZodType>(target: T, schema: S); // zValidator's inferred type (keeps RPC input types); 400 { error: string }
 
 // apps/server/src/application/http/shows.ts
 const ShowIdParam = z.object({ id: ShowId });
@@ -225,19 +225,21 @@ const UpdateShowRequest = z.object({ name: ShowName.optional(), audioLanguage: A
   .refine((patch) => patch.name !== undefined || patch.audioLanguage !== undefined, 'Patch must change name or audioLanguage');
 export interface ShowResponse { id: string; name: string; audioLanguage: AudioLanguage; createdAt: string } // unbranded for RPC
 export interface ShowServices { finder: ShowFinder; creator: ShowCreator; updater: ShowUpdater; deleter: ShowDeleter }
-export function createShowRoutes(services: ShowServices): Hono; // chained; GET / , GET /:id, POST /, PATCH /:id, DELETE /:id
+export function createShowRoutes(services: ShowServices); // inferred chained Hono type (RPC); GET / , GET /:id, POST /, PATCH /:id, DELETE /:id
 function toShowResponse(show: Show): ShowResponse;
-// errors: per-route Result.match + matchError, c.json({ error: e.message }, 404 | 409)
+// errors: per-route `result.isOk() ? c.json(..., 2xx) : matchError(result.error, {...})` -> c.json({ error: e.message }, 404 | 409)
+// (better-result v3 `match` unifies both arms to one type, which would collapse the RPC status-code union)
+function toShowPatch(request: z.infer<typeof UpdateShowRequest>): ShowPatch; // throws if the refine let an empty patch through (defect)
 
 // apps/server/src/application/http/health.ts
-export function createHealthRoutes(): Hono; // GET / -> 200 { status: 'ok' }
+export function createHealthRoutes(); // inferred Hono type; GET / -> 200 { status: 'ok' }
 
 // apps/server/src/application/http/request-logger.ts
 export function requestLogger(logger: Logger): MiddlewareHandler; // sets c.var.logger (child with reqId), logs method/path/status/ms
 
 // apps/server/src/application/http/app.ts
 export interface AppOptions { webDist?: string }
-export function createApp(services: ShowServices, logger: Logger, options?: AppOptions): Hono; // route('/api/health'), route('/api/shows')
+export function createApp(services: ShowServices, logger: Logger, options?: AppOptions); // inferred Hono type; route('/api/health'), route('/api/shows')
 export type AppType = ReturnType<typeof createApp>;
 
 // apps/server/src/application/tasks/outbox-dispatcher.ts
@@ -312,7 +314,7 @@ main
   createLogger(config.LOG_LEVEL, config.NODE_ENV !== 'production')
   openDatabase(`${DATA_DIR}/superthree.db`)  (mkdir DATA_DIR)
   migrateToLatest(db)
-  repositories, transactor, services (systemClock, randomIds)
+  repositories, transactor(db, systemClock), services (systemClock, randomIds)
   createApp(services, logger, { webDist: config.WEB_DIST })
   serve({ fetch: app.fetch, port })
   dispatcher.start(1000)
