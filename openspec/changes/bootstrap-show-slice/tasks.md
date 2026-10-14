@@ -29,7 +29,7 @@
 - [x] 2.23 `shows.test.ts` `should fail to delete if show missing` — drives delete's 404.
 - [x] 2.24 `outbox-dispatcher.test.ts` `should dispatch pending events in order` — drives `dispatchPending`, `pending`, `markProcessed`.
 - [x] 2.25 `outbox-dispatcher.test.ts` `should keep an event pending if its handler fails` — drives stop-on-failure.
-- [ ] 2.26 `show-created-logger.test.ts` `should log a created show` — drives the subscriber.
+- [x] 2.26 `show-created-logger.test.ts` `should log a created show` — drives the subscriber.
 
 ## 3. Infrastructure adapters (TDD)
 
