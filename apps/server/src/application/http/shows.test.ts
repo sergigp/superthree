@@ -166,6 +166,20 @@ it('should update a show', async () => {
   expect(await shows.list()).toEqual([updated]);
 });
 
+it('should update a show to a case variant of its own name', async () => {
+  const db = await testDatabase();
+  const shows = createSqliteShowRepository(db);
+  const bluey = aShow({ name: 'Bluey' });
+  await shows.insert(bluey);
+  const client = testClient(createRoutes(shows, createSqliteTransactor(db, fixedClock(now))));
+
+  const response = await client[':id'].$patch({ param: { id: bluey.id }, json: { name: 'BLUEY' } });
+
+  const updated = { ...bluey, name: 'BLUEY' };
+  expect({ status: response.status, body: await response.json() }).toEqual({ status: 200, body: updated });
+  expect(await shows.list()).toEqual([updated]);
+});
+
 function createRoutes(shows: ShowRepository, transactor: Transactor) {
   return createShowRoutes({
     finder: createShowFinder(shows),

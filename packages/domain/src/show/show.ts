@@ -17,8 +17,8 @@ export function createShow(id: ShowId, name: ShowName, audioLanguage: AudioLangu
   return { id, name, audioLanguage, createdAt: createdAt.toISOString() };
 }
 
-export function withName(show: Show, _name: ShowName): Show {
-  return show;
+export function withName(show: Show, name: ShowName): Show {
+  return { ...show, name };
 }
 
 export function withAudioLanguage(show: Show, audioLanguage: AudioLanguage): Show {
