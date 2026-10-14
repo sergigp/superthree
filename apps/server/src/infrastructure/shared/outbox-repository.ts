@@ -18,8 +18,17 @@ export function createSqliteOutboxRepository(
   db: Kysely<Database>,
 ): OutboxRepository & { list(): Promise<OutboxEntry[]> } {
   return {
-    pending: () => Promise.resolve([]),
-    markProcessed: (_entry, _processedAt) => Promise.resolve(),
+    pending: async () =>
+      (await db.selectFrom('outbox').selectAll().where('processed_at', 'is', null).orderBy('id').execute()).map(
+        toEntry,
+      ),
+    markProcessed: async (entry, processedAt) => {
+      await db
+        .updateTable('outbox')
+        .set({ processed_at: processedAt.toISOString() })
+        .where('id', '=', entry.id)
+        .execute();
+    },
     list: async () => (await db.selectFrom('outbox').selectAll().orderBy('id').execute()).map(toEntry),
   };
 }

@@ -16,14 +16,19 @@ export interface OutboxDispatcher {
 }
 
 export function createOutboxDispatcher(
-  _outbox: OutboxRepository,
-  _handlers: EventHandlers,
-  _clock: Clock,
+  outbox: OutboxRepository,
+  handlers: EventHandlers,
+  clock: Clock,
   _logger: Logger,
 ): OutboxDispatcher {
   let timer: NodeJS.Timeout | undefined;
   let inFlight: Promise<void> = Promise.resolve();
-  const dispatchPending = (): Promise<void> => Promise.resolve();
+  const dispatchPending = async (): Promise<void> => {
+    for (const entry of await outbox.pending()) {
+      await dispatch(handlers, entry.event);
+      await outbox.markProcessed(entry, clock.now());
+    }
+  };
   return {
     dispatchPending,
     start: (intervalMs) => {
@@ -36,4 +41,11 @@ export function createOutboxDispatcher(
       return inFlight;
     },
   };
+}
+
+function dispatch(handlers: EventHandlers, event: DomainEvent): Promise<void> {
+  switch (event.type) {
+    case 'ShowCreated':
+      return handlers.ShowCreated(event);
+  }
 }
