@@ -15,6 +15,10 @@ it('should reject a blank name', () => {
   expect(failureMessages('   ')).toEqual(['Too small: expected string to have >=1 characters']);
 });
 
+it('should reject a name over 100 characters', () => {
+  expect(failureMessages('a'.repeat(101))).toEqual(['Too big: expected string to have <=100 characters']);
+});
+
 function failureMessages(input: string): string[] | undefined {
   return ShowName.safeParse(input).error?.issues.map((issue) => issue.message);
 }
