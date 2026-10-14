@@ -7,8 +7,13 @@ export interface EventPublisher {
   publish(event: DomainEvent): Promise<void>;
 }
 
-export function createSqliteEventPublisher(_db: Kysely<Database>, _clock: Clock): EventPublisher {
+export function createSqliteEventPublisher(db: Kysely<Database>, clock: Clock): EventPublisher {
   return {
-    publish: (_event) => Promise.resolve(),
+    publish: async (event) => {
+      await db
+        .insertInto('outbox')
+        .values({ type: event.type, payload: JSON.stringify(event), created_at: clock.now().toISOString(), processed_at: null })
+        .execute();
+    },
   };
 }

@@ -13,8 +13,8 @@ export const Show = z
   .readonly();
 export type Show = z.infer<typeof Show>;
 
-export function createShow(id: ShowId, name: ShowName, audioLanguage: AudioLanguage, _createdAt: Date): Show {
-  return { id, name, audioLanguage, createdAt: '' };
+export function createShow(id: ShowId, name: ShowName, audioLanguage: AudioLanguage, createdAt: Date): Show {
+  return { id, name, audioLanguage, createdAt: createdAt.toISOString() };
 }
 
 export function withName(show: Show, _name: ShowName): Show {

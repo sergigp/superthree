@@ -13,6 +13,12 @@ export const ShowCreated = z.object({
 });
 export type ShowCreated = z.infer<typeof ShowCreated>;
 
-export function showCreated(show: Show, _occurredAt: Date): ShowCreated {
-  return { type: 'ShowCreated', showId: show.id, name: show.name, audioLanguage: show.audioLanguage, occurredAt: '' };
+export function showCreated(show: Show, occurredAt: Date): ShowCreated {
+  return {
+    type: 'ShowCreated',
+    showId: show.id,
+    name: show.name,
+    audioLanguage: show.audioLanguage,
+    occurredAt: occurredAt.toISOString(),
+  };
 }

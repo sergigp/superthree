@@ -12,7 +12,7 @@
 - [x] 2.6 `audio-language.test.ts` `should reject an unsupported language` — drives the enum's rejection.
 - [x] 2.7 `show-id.test.ts` `should accept a uuid` and `should reject a non-uuid` (one cycle each) — drives `ShowId`.
 - [x] 2.8 `health.test.ts` `should report the server is up` — drives `GET /api/health`.
-- [ ] 2.9 `shows.test.ts` `should create a show` — drives `ShowCreator`, `createShow`, `toShowResponse`, show insert and `ShowCreated` publish inside `transactor.run`.
+- [x] 2.9 `shows.test.ts` `should create a show` — drives `ShowCreator`, `createShow`, `toShowResponse`, show insert and `ShowCreated` publish inside `transactor.run`.
 - [ ] 2.10 `shows.test.ts` `should create any valid show with its trimmed name` — fast-check property over the create route.
 - [ ] 2.11 `shows.test.ts` `should fail to create if name is taken` — drives `findByName` check and the 409 mapping; no outbox row.
 - [ ] 2.12 `shows.test.ts` `should fail to create if name differs only in case` — drives case-insensitive `findByName`.
