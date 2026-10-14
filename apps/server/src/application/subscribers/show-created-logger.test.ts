@@ -25,11 +25,13 @@ it('should log a created show', async () => {
     {
       level: 30,
       msg: 'show created',
-      type: 'ShowCreated',
-      showId: '11111111-1111-4111-8111-000000000001',
-      name: 'Bluey',
-      audioLanguage: 'en',
-      occurredAt: occurredAt.toISOString(),
+      event: {
+        type: 'ShowCreated',
+        showId: '11111111-1111-4111-8111-000000000001',
+        name: 'Bluey',
+        audioLanguage: 'en',
+        occurredAt: occurredAt.toISOString(),
+      },
     },
   ]);
 });
