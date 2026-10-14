@@ -1,4 +1,4 @@
-import type { Kysely } from 'kysely';
+import { sql, type Kysely } from 'kysely';
 import { Migrator, type Migration } from 'kysely/migration';
 import type { Database } from './database.ts';
 
@@ -11,6 +11,12 @@ const migrations: Record<string, Migration> = {
         .addColumn('name', 'text', (column) => column.notNull())
         .addColumn('audio_language', 'text', (column) => column.notNull())
         .addColumn('created_at', 'text', (column) => column.notNull())
+        .execute();
+      await db.schema
+        .createIndex('shows_name_unique')
+        .on('shows')
+        .unique()
+        .expression(sql`name COLLATE NOCASE`)
         .execute();
       await db.schema
         .createTable('outbox')
