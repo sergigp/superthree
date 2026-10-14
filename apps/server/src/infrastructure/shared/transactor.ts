@@ -19,6 +19,9 @@ export interface Transactor {
 
 export function createSqliteTransactor(db: Kysely<Database>, clock: Clock): Transactor {
   return {
-    run: (work) => work({ shows: createSqliteShowRepository(db), events: createSqliteEventPublisher(db, clock) }),
+    run: (work) =>
+      db
+        .transaction()
+        .execute((trx) => work({ shows: createSqliteShowRepository(trx), events: createSqliteEventPublisher(trx, clock) })),
   };
 }
