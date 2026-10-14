@@ -18,6 +18,9 @@ export function createApp(services: ShowServices, logger: Logger, options: AppOp
     logger.error({ err: error }, 'unhandled error');
     return c.json({ error: 'Internal server error' }, 500);
   });
+  app.notFound((c) => c.json({ error: `Route ${c.req.method} ${c.req.path} not found` }, 404));
+  // Keeps unknown API paths out of the SPA fallback below.
+  app.all('/api/*', (c) => c.notFound());
   if (options.webDist !== undefined) {
     app.use('/*', serveStatic({ root: options.webDist }));
     app.get('/*', serveStatic({ root: options.webDist, path: 'index.html' }));
