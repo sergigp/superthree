@@ -127,6 +127,18 @@ it('should list all shows sorted by name', async () => {
   expect({ status: response.status, body: await response.json() }).toEqual({ status: 200, body: [bluey, caillou, peppa] });
 });
 
+it('should get a show', async () => {
+  const db = await testDatabase();
+  const shows = createSqliteShowRepository(db);
+  const bluey = aShow({ name: 'Bluey', audioLanguage: 'ca' });
+  await shows.insert(bluey);
+  const client = testClient(createRoutes(shows, createSqliteTransactor(db, fixedClock(now))));
+
+  const response = await client[':id'].$get({ param: { id: bluey.id } });
+
+  expect({ status: response.status, body: await response.json() }).toEqual({ status: 200, body: bluey });
+});
+
 function createRoutes(shows: ShowRepository, transactor: Transactor) {
   return createShowRoutes({
     finder: createShowFinder(shows),

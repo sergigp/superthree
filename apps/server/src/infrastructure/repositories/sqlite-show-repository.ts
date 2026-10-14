@@ -18,7 +18,10 @@ export function createSqliteShowRepository(db: Kysely<Database>): ShowRepository
   return {
     list: async () =>
       (await db.selectFrom('shows').selectAll().orderBy(sql`name COLLATE NOCASE`).execute()).map(toShow),
-    findById: (_id) => Promise.resolve(undefined),
+    findById: async (id) => {
+      const row = await db.selectFrom('shows').selectAll().where('id', '=', id).executeTakeFirst();
+      return row === undefined ? undefined : toShow(row);
+    },
     findByName: async (name) => {
       const row = await db
         .selectFrom('shows')
