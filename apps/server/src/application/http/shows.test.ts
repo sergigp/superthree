@@ -20,6 +20,7 @@ import { createShowRoutes } from './shows.ts';
 
 const now = new Date('2026-10-14T10:00:00.000Z');
 const firstId = '00000000-0000-4000-8000-000000000001';
+const missingId = '99999999-9999-4999-8999-999999999999';
 const seededAt = '2026-10-01T09:00:00.000Z';
 
 it('should create a show', async () => {
@@ -137,6 +138,18 @@ it('should get a show', async () => {
   const response = await client[':id'].$get({ param: { id: bluey.id } });
 
   expect({ status: response.status, body: await response.json() }).toEqual({ status: 200, body: bluey });
+});
+
+it('should fail to get if show missing', async () => {
+  const db = await testDatabase();
+  const client = testClient(createRoutes(createSqliteShowRepository(db), createSqliteTransactor(db, fixedClock(now))));
+
+  const response = await client[':id'].$get({ param: { id: missingId } });
+
+  expect({ status: response.status, body: await response.json() }).toEqual({
+    status: 404,
+    body: { error: `Show ${missingId} not found` },
+  });
 });
 
 function createRoutes(shows: ShowRepository, transactor: Transactor) {
