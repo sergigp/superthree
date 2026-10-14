@@ -21,6 +21,12 @@ export interface Database {
   outbox: OutboxTable;
 }
 
+/** Enables WAL (file databases only) and foreign keys. */
 export function openDatabase(path: string): Kysely<Database> {
-  return new Kysely<Database>({ dialect: new SqliteDialect({ database: new SqliteDatabase(path) }) });
+  const database = new SqliteDatabase(path);
+  if (path !== ':memory:') {
+    database.pragma('journal_mode = WAL');
+  }
+  database.pragma('foreign_keys = ON');
+  return new Kysely<Database>({ dialect: new SqliteDialect({ database }) });
 }

@@ -35,4 +35,4 @@
 
 - [x] 3.1 `sqlite-show-repository.test.ts` `should reject inserting a name that differs only in case` — drives the unique `NOCASE` index in `0001_init`.
 - [x] 3.2 `transactor.test.ts` `should roll back every write if the work throws` — drives `createSqliteTransactor` over `db.transaction()`.
-- [ ] 3.3 `database.test.ts` `should enable WAL and foreign keys on a file database` — drives `openDatabase` pragmas.
+- [x] 3.3 `database.test.ts` `should enable WAL and foreign keys on a file database` — drives `openDatabase` pragmas.
