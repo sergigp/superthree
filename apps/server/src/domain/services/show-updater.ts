@@ -3,7 +3,7 @@ import type { ShowId } from '@superthree/domain/show/show-id';
 import type { ShowName } from '@superthree/domain/show/show-name';
 import { Result } from 'better-result';
 import type { ShowRepository } from '../../infrastructure/repositories/sqlite-show-repository.ts';
-import { ShowNameTaken, type UpdateShowError } from '../show/errors.ts';
+import { ShowNameTaken, ShowNotFound, type UpdateShowError } from '../show/errors.ts';
 import type { ShowPatch } from '../show/show-patch.ts';
 
 export interface ShowUpdater {
@@ -15,10 +15,7 @@ export function createShowUpdater(shows: ShowRepository): ShowUpdater {
   return {
     update: (id, patch) =>
       Result.gen(async function* () {
-        const show = await shows.findById(id);
-        if (show === undefined) {
-          throw new Error(`Show ${id} not found`);
-        }
+        const show = yield* Result.await(findShow(shows, id));
         if (patch.name !== undefined) {
           yield* Result.await(ensureNameAvailableFor(shows, id, patch.name));
         }
@@ -32,6 +29,11 @@ export function createShowUpdater(shows: ShowRepository): ShowUpdater {
 function applyPatch(show: Show, patch: ShowPatch): Show {
   const renamed = patch.name === undefined ? show : withName(show, patch.name);
   return patch.audioLanguage === undefined ? renamed : withAudioLanguage(renamed, patch.audioLanguage);
+}
+
+async function findShow(shows: ShowRepository, id: ShowId): Promise<Result<Show, ShowNotFound>> {
+  const show = await shows.findById(id);
+  return show === undefined ? Result.err(new ShowNotFound({ id, message: `Show ${id} not found` })) : Result.ok(show);
 }
 
 async function ensureNameAvailableFor(

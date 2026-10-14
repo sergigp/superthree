@@ -198,6 +198,18 @@ it('should fail to update if name is taken', async () => {
   expect(await shows.list()).toEqual([bluey, peppa]);
 });
 
+it('should fail to update if show missing', async () => {
+  const db = await testDatabase();
+  const client = testClient(createRoutes(createSqliteShowRepository(db), createSqliteTransactor(db, fixedClock(now))));
+
+  const response = await client[':id'].$patch({ param: { id: missingId }, json: { audioLanguage: 'ca' } });
+
+  expect({ status: response.status, body: await response.json() }).toEqual({
+    status: 404,
+    body: { error: `Show ${missingId} not found` },
+  });
+});
+
 function createRoutes(shows: ShowRepository, transactor: Transactor) {
   return createShowRoutes({
     finder: createShowFinder(shows),
