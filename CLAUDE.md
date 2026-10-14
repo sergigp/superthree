@@ -11,7 +11,8 @@ Early stage: one vertical slice (`Show` CRUD + outbox) proves the stack end to e
 ## Commands
 
 - `pnpm install` — Node 24 (`.nvmrc`), pnpm workspaces.
-- `pnpm dev` — server (`node --watch`, port 8080) + Vite (proxies `/api`).
+- `scripts/run-local.sh` — builds the SPA and runs the server serving it on :8080, DB persisted in `data/` (`--fresh-db`, `--skip-web-build`, `--port`; `--help`). Use it to try the app the way the container runs it.
+- `pnpm dev` — server (`node --watch`, port 8080) + Vite (proxies `/api`), for hot reload while developing.
 - `pnpm test` — Vitest over every package; `pnpm test -- <file>` for one file.
 - `pnpm typecheck` — `tsc` per package (typecheck only, no emit).
 - `pnpm build` — builds the web SPA only; server and domain run as `.ts` via Node type stripping.

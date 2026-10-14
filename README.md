@@ -154,3 +154,15 @@ Routes, chained so the type is inferable, with `AppType` exported from `app.ts`:
 - A `ShowCreated` log line appears after each create.
 - A short `CLAUDE.md` exists with the commands, the layout and the conventions above.
 - You finish with a summary of anything you did differently from this prompt and why.
+
+## Running locally
+
+Requires Node 24+ (see `.nvmrc`) and pnpm.
+
+```sh
+scripts/run-local.sh            # build the web UI and serve everything on http://localhost:8080
+scripts/run-local.sh --fresh-db # same, with a throwaway database
+pnpm dev                        # hot reload: server on :8080 + Vite dev server proxying /api
+```
+
+`run-local.sh` keeps the SQLite database in `data/` (gitignored) and reads an optional `.env` in the repo root. Run `scripts/run-local.sh --help` for all options.
