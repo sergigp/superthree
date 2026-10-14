@@ -222,6 +222,19 @@ it('should fail to update if patch is empty', async () => {
   });
 });
 
+it('should delete a show', async () => {
+  const db = await testDatabase();
+  const shows = createSqliteShowRepository(db);
+  const bluey = aShow({ name: 'Bluey' });
+  await shows.insert(bluey);
+  const client = testClient(createRoutes(shows, createSqliteTransactor(db, fixedClock(now))));
+
+  const response = await client[':id'].$delete({ param: { id: bluey.id } });
+
+  expect(response.status).toEqual(204);
+  expect(await shows.list()).toEqual([]);
+});
+
 function createRoutes(shows: ShowRepository, transactor: Transactor) {
   return createShowRoutes({
     finder: createShowFinder(shows),

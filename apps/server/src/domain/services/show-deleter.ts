@@ -7,8 +7,11 @@ export interface ShowDeleter {
   delete(id: ShowId): Promise<Result<void, DeleteShowError>>;
 }
 
-export function createShowDeleter(_shows: ShowRepository): ShowDeleter {
+export function createShowDeleter(shows: ShowRepository): ShowDeleter {
   return {
-    delete: (_id) => Promise.resolve(Result.ok(undefined)),
+    delete: async (id) => {
+      await shows.delete(id);
+      return Result.ok(undefined);
+    },
   };
 }

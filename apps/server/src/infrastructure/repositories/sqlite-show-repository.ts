@@ -40,7 +40,9 @@ export function createSqliteShowRepository(db: Kysely<Database>): ShowRepository
         .where('id', '=', show.id)
         .execute();
     },
-    delete: (_id) => Promise.resolve(),
+    delete: async (id) => {
+      await db.deleteFrom('shows').where('id', '=', id).execute();
+    },
   };
 }
 
