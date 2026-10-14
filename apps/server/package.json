@@ -1,0 +1,28 @@
+{
+  "name": "@superthree/server",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./app": "./src/application/http/app.ts"
+  },
+  "scripts": {
+    "dev": "node --watch src/main.ts",
+    "start": "node src/main.ts",
+    "typecheck": "tsc"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "9.6.0",
+    "pino-pretty": "13.2.0"
+  },
+  "dependencies": {
+    "@hono/node-server": "2.1.5",
+    "@hono/zod-validator": "0.9.1",
+    "@superthree/domain": "workspace:*",
+    "better-result": "3.0.1",
+    "better-sqlite3": "13.0.3",
+    "hono": "4.13.13",
+    "kysely": "0.29.6",
+    "pino": "10.4.0",
+    "zod": "4.6.7"
+  }
+}

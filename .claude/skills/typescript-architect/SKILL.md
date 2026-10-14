@@ -174,7 +174,11 @@ Ideally we should not test domain services at all because the logic there is tes
 
 **Fakes are for everything else**: out-of-process or side-effecting dependencies (ffmpeg/ffprobe, outbound HTTP, external APIs, filesystem-backed ports). Fakes are hand-written and as simple as possible — **no mocking library, no `vi.mock`, no spies**. They are state-based (e.g. backed by an array in a closure) and may offer constructors for failure scenarios (e.g. `failingVideoDownloader()`).
 
-The Clock is a port and is faked (`fixedClock(date)`) so time is deterministic; it is also what makes stored timestamps assertable.
+The Clock is a port and is faked (`fixedClock(date)`) so time is deterministic; it is also what makes stored timestamps assertable. Ids are generated through the `IdGenerator` port (`infrastructure/shared/id-generator.ts`: `randomIds` in production, `sequentialIds()` in tests), never with `crypto.randomUUID()` inside the domain, so generated ids are assertable too.
+
+## Transactions
+
+When a use case writes more than once (typically an entity plus its domain event in the outbox), it groups the writes with the `Transactor` port (`infrastructure/shared/transactor.ts`). `transactor.run(work)` hands `work` a `TransactionScope` with the repositories and the `EventPublisher` bound to one SQLite transaction; it commits when `work` resolves and rolls back when it throws. Business checks (lookups that may return a domain error) happen before `run`, so `work` never deals with `Result`: it only writes. Single-write use cases call their repository directly.
 
 ## Value Object Tests
 

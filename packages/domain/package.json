@@ -1,0 +1,14 @@
+{
+  "name": "@superthree/domain",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./*": "./src/*.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc"
+  },
+  "dependencies": {
+    "zod": "4.6.7"
+  }
+}

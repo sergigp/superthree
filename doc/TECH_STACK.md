@@ -11,11 +11,11 @@ Guiding principle: a pure, functional core (the scheduler and the live playlist 
 | Language                   | TypeScript                                | `typescript`                |
 | Runtime                    | Node 24 LTS                               | —                           |
 | Boundary validation        | Zod 4                                     | `zod`                       |
-| Errors (`Result`)          | better-result                             | `better-result`             |
+| Errors (`Result`)          | better-result v3                          | `better-result`             |
 | Optional values (`Option`) | Native `T \| undefined`                   | —                           |
 | Collections                | Native array and iterator methods         | —                           |
-| Logging                    | pino                                      | `pino`                      |
-| HTTP layer                 | Hono                                      | `hono`, `@hono/node-server` |
+| Logging                    | pino (pretty output in development)       | `pino`, `pino-pretty` (dev) |
+| HTTP layer                 | Hono + Zod validator middleware           | `hono`, `@hono/node-server`, `@hono/zod-validator` |
 | Shared domain (front/back) | Hono RPC + a `domain` workspace package   | `hono/client`               |
 | SQLite access              | Kysely                                    | `kysely`                    |
 | SQLite driver              | better-sqlite3                            | `better-sqlite3`            |
@@ -31,7 +31,7 @@ Its type system, with discriminated unions and exhaustiveness checking, lets us 
 
 ### Runtime: Node 24 LTS
 
-It is the current LTS release. Performance doesn't drive the choice: the server only computes playlists and serves static files, while ffmpeg does the heavy lifting.
+It is the current LTS release (pinned in `.nvmrc`). Performance doesn't drive the choice: the server only computes playlists and serves static files, while ffmpeg does the heavy lifting. Node runs the server and the `domain` package's `.ts` files directly through type stripping, so there is no build step outside the web editor; `tsc` only typechecks.
 
 ### Boundary validation: Zod 4
 
@@ -39,7 +39,7 @@ All incoming data (HTTP requests, ffprobe's JSON output, configuration) is parse
 
 ### Errors: better-result
 
-Domain errors are part of the return type instead of being thrown as exceptions. `Result.gen` composes them much like a for-comprehension, and tagged errors are handled with an exhaustive match.
+Domain errors are part of the return type instead of being thrown as exceptions. `Result.gen` composes them much like a for-comprehension, and tagged errors are handled with an exhaustive match. We use v3, where `TaggedError('Tag')<Props>` takes no trailing call.
 
 ### Optional values: native `T | undefined`
 
@@ -55,7 +55,7 @@ It writes structured JSON logs to stdout, which is what Docker collects on the N
 
 ### HTTP layer: Hono
 
-A small HTTP framework built on web standards (`Request`/`Response`) that feels more like a library than a framework. It infers types along the route chain, which is what makes the typed RPC client possible.
+A small HTTP framework built on web standards (`Request`/`Response`) that feels more like a library than a framework. It infers types along the route chain, which is what makes the typed RPC client possible. `@hono/zod-validator` validates requests against Zod schemas and keeps the validated types flowing into the RPC client; invalid requests get a `400 { error }` before reaching a handler.
 
 ### Shared domain: Hono RPC + `domain` package
 

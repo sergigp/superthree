@@ -1,0 +1,26 @@
+import { z } from 'zod';
+import { AudioLanguage } from './audio-language.ts';
+import { ShowId } from './show-id.ts';
+import { ShowName } from './show-name.ts';
+
+export const Show = z
+  .object({
+    id: ShowId,
+    name: ShowName,
+    audioLanguage: AudioLanguage,
+    createdAt: z.iso.datetime(),
+  })
+  .readonly();
+export type Show = z.infer<typeof Show>;
+
+export function createShow(id: ShowId, name: ShowName, audioLanguage: AudioLanguage, _createdAt: Date): Show {
+  return { id, name, audioLanguage, createdAt: '' };
+}
+
+export function withName(show: Show, _name: ShowName): Show {
+  return show;
+}
+
+export function withAudioLanguage(show: Show, _audioLanguage: AudioLanguage): Show {
+  return show;
+}
