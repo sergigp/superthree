@@ -37,6 +37,29 @@ it('should dispatch pending events in order', async () => {
   ]);
 });
 
+it('should keep an event pending if its handler fails', async () => {
+  const db = await testDatabase();
+  const outbox = createSqliteOutboxRepository(db);
+  const events = createSqliteEventPublisher(db, fixedClock(publishedAt));
+  const bluey = created('11111111-1111-4111-8111-000000000001', 'Bluey');
+  const peppa = created('11111111-1111-4111-8111-000000000002', 'Peppa');
+  await events.publish(bluey);
+  await events.publish(peppa);
+  const dispatcher = createOutboxDispatcher(
+    outbox,
+    { ShowCreated: (event) => (event.name === 'Bluey' ? Promise.reject(new Error('boom')) : Promise.resolve()) },
+    fixedClock(dispatchedAt),
+    silent,
+  );
+
+  await expect(dispatcher.dispatchPending()).resolves.toBeUndefined();
+
+  expect(await outbox.list()).toEqual([
+    { id: 1, event: bluey, createdAt: publishedAt.toISOString(), processedAt: undefined },
+    { id: 2, event: peppa, createdAt: publishedAt.toISOString(), processedAt: undefined },
+  ]);
+});
+
 function created(id: string, name: string): ShowCreated {
   return showCreated(Show.parse({ id, name, audioLanguage: 'en', createdAt: publishedAt.toISOString() }), publishedAt);
 }

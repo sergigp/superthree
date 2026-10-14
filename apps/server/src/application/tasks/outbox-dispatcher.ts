@@ -19,14 +19,18 @@ export function createOutboxDispatcher(
   outbox: OutboxRepository,
   handlers: EventHandlers,
   clock: Clock,
-  _logger: Logger,
+  logger: Logger,
 ): OutboxDispatcher {
   let timer: NodeJS.Timeout | undefined;
   let inFlight: Promise<void> = Promise.resolve();
   const dispatchPending = async (): Promise<void> => {
-    for (const entry of await outbox.pending()) {
-      await dispatch(handlers, entry.event);
-      await outbox.markProcessed(entry, clock.now());
+    try {
+      for (const entry of await outbox.pending()) {
+        await dispatch(handlers, entry.event);
+        await outbox.markProcessed(entry, clock.now());
+      }
+    } catch (error) {
+      logger.error({ err: error }, 'outbox dispatch failed, retrying on next poll');
     }
   };
   return {
