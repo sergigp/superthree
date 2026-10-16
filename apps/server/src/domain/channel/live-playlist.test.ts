@@ -18,6 +18,17 @@ it('should map each position to the same chunk in every playlist', () => {
   );
 });
 
+it('should never move sequence numbers backwards', () => {
+  fc.assert(
+    fc.property(scenario(), ({ lineup, start, t1, t2 }) => {
+      const first = livePlaylist(lineup, start, at(start, t1));
+      const second = livePlaylist(lineup, start, at(start, t2));
+
+      expect(first === undefined || isNotBehind(second, first)).toBe(true);
+    }),
+  );
+});
+
 interface Scenario {
   readonly lineup: Lineup;
   readonly start: Date;
@@ -75,6 +86,14 @@ function stableView(playlist: LivePlaylist | undefined, position: number) {
     startMs: chunk?.startMs,
     discontinuity: (playlist?.discontinuitySequence ?? 0) + chunks.slice(0, index + 1).filter(hasDiscontinuity).length,
   };
+}
+
+function isNotBehind(later: LivePlaylist | undefined, earlier: LivePlaylist): boolean {
+  return (
+    later !== undefined &&
+    later.mediaSequence >= earlier.mediaSequence &&
+    later.discontinuitySequence >= earlier.discontinuitySequence
+  );
 }
 
 function hasDiscontinuity(chunk: Chunk): boolean {

@@ -15,7 +15,7 @@
 - [x] 2.9 `should fail to serve a chunk that does not exist` — missing file and traversal → 404. Verify: test passes.
 - [x] 2.10 `should route channel paths ahead of the web app` — `/tv/*` never falls to the SPA; no `channel` → 404. Verify: test passes.
 - [x] 2.11 `should map each position to the same chunk in every playlist` — fast-check stability property. Verify: test passes.
-- [ ] 2.12 `should never move sequence numbers backwards` — fast-check monotonicity property. Verify: test passes.
+- [x] 2.12 `should never move sequence numbers backwards` — fast-check monotonicity property. Verify: test passes.
 - [ ] 2.13 `should list consecutive positions up to the window size` — fast-check window shape property. Verify: test passes.
 - [ ] 2.14 `should follow the clock` — fast-check live-edge and `ended` property. Verify: test passes.
 - [ ] 2.15 `should agree with a naive expansion of the lineup` — fast-check oracle property for `chunkAt`. Verify: test passes.
