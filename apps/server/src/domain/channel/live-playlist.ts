@@ -22,12 +22,12 @@ export function livePlaylist(lineup: Lineup, start: Date, now: Date): LivePlayli
     mediaSequence: chunks[0]?.position ?? 0,
     discontinuitySequence: windowStart === 0 ? 0 : (chunkAt(lineup, windowStart - 1)?.occurrence ?? 0),
     chunks,
-    ended: false,
+    ended: chunkAt(lineup, count) === undefined,
     start,
   };
 }
 
-/** EXTINF as (ms/1000).toFixed(3); DISCONTINUITY before isClipStart && position > 0; PROGRAM-DATE-TIME on first chunk and after each DISCONTINUITY. */
+/** EXTINF as (ms/1000).toFixed(3); DISCONTINUITY before isClipStart && position > 0; PROGRAM-DATE-TIME on first chunk and after each DISCONTINUITY; ENDLIST iff ended. */
 export function renderLivePlaylist(playlist: LivePlaylist): string {
   const lines = [
     '#EXTM3U',
@@ -37,6 +37,7 @@ export function renderLivePlaylist(playlist: LivePlaylist): string {
     `#EXT-X-MEDIA-SEQUENCE:${playlist.mediaSequence}`,
     `#EXT-X-DISCONTINUITY-SEQUENCE:${playlist.discontinuitySequence}`,
     ...playlist.chunks.flatMap((chunk, index) => chunkLines(chunk, index, playlist.start)),
+    ...(playlist.ended ? ['#EXT-X-ENDLIST'] : []),
   ];
   return `${lines.join('\n')}\n`;
 }

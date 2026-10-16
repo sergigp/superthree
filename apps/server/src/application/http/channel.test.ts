@@ -137,6 +137,36 @@ it('should loop the card', async () => {
   });
 });
 
+it('should end the broadcast', async () => {
+  const app = buildApp(endingLineup(epA, epB), fixedClock(at(3_600_000)), '/nonexistent');
+
+  const response = await app.request('/tv/live.m3u8');
+
+  expect(await playlistResponse(response)).toEqual({
+    status: 200,
+    contentType: 'application/vnd.apple.mpegurl',
+    cacheControl: 'no-cache',
+    body: [
+      ...header(0, 0),
+      '#EXT-X-PROGRAM-DATE-TIME:2026-10-16T18:00:00.000Z',
+      '#EXTINF:6.000,',
+      'media/ep-a/seg_0000.ts',
+      '#EXTINF:6.000,',
+      'media/ep-a/seg_0001.ts',
+      '#EXTINF:2.040,',
+      'media/ep-a/seg_0002.ts',
+      '#EXT-X-DISCONTINUITY',
+      '#EXT-X-PROGRAM-DATE-TIME:2026-10-16T18:00:14.040Z',
+      '#EXTINF:6.000,',
+      'media/ep-b/seg_0000.ts',
+      '#EXTINF:2.040,',
+      'media/ep-b/seg_0001.ts',
+      '#EXT-X-ENDLIST',
+      '',
+    ].join('\n'),
+  });
+});
+
 function buildApp(lineup: Lineup, clock: Clock, mediaDir: string) {
   const db = unmigratedTestDatabase();
   const shows = createSqliteShowRepository(db);
