@@ -1,12 +1,14 @@
 import { serveStatic } from '@hono/node-server/serve-static';
 import { Hono } from 'hono';
 import type { Logger } from 'pino';
+import { type ChannelOptions, createChannelRoutes } from './channel.ts';
 import { createHealthRoutes } from './health.ts';
 import { requestLogger } from './request-logger.ts';
 import { createShowRoutes, type ShowServices } from './shows.ts';
 
 export interface AppOptions {
   webDist?: string;
+  channel?: ChannelOptions;
 }
 
 export function createApp(services: ShowServices, logger: Logger, options: AppOptions = {}) {
@@ -21,6 +23,11 @@ export function createApp(services: ShowServices, logger: Logger, options: AppOp
   app.notFound((c) => c.json({ error: `Route ${c.req.method} ${c.req.path} not found` }, 404));
   // Keeps unknown API paths out of the SPA fallback below.
   app.all('/api/*', (c) => c.notFound());
+  if (options.channel !== undefined) {
+    app.route('/tv', createChannelRoutes(options.channel));
+  }
+  // Keeps unknown channel paths out of the SPA fallback below.
+  app.all('/tv/*', (c) => c.notFound());
   if (options.webDist !== undefined) {
     app.use('/*', serveStatic({ root: options.webDist }));
     app.get('/*', serveStatic({ root: options.webDist, path: 'index.html' }));

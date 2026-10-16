@@ -6,6 +6,12 @@ export const Config = z.object({
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
   WEB_DIST: z.string().optional(),
   NODE_ENV: z.string().optional(),
+  MEDIA_DIR: z.string().optional(),
+  POC_START: z.iso
+    .datetime()
+    .default('2026-10-16T00:00:00Z')
+    .transform((s) => new Date(s)),
+  POC_LINEUP: z.enum(['loop', 'ends']).default('loop'),
 });
 export type Config = z.infer<typeof Config>;
 
