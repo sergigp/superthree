@@ -17,7 +17,7 @@
 - [x] 2.11 `should map each position to the same chunk in every playlist` — fast-check stability property. Verify: test passes.
 - [x] 2.12 `should never move sequence numbers backwards` — fast-check monotonicity property. Verify: test passes.
 - [x] 2.13 `should list consecutive positions up to the window size` — fast-check window shape property. Verify: test passes.
-- [ ] 2.14 `should follow the clock` — fast-check live-edge and `ended` property. Verify: test passes.
+- [x] 2.14 `should follow the clock` — fast-check live-edge and `ended` property. Verify: test passes.
 - [ ] 2.15 `should agree with a naive expansion of the lineup` — fast-check oracle property for `chunkAt`. Verify: test passes.
 - [ ] 2.16 `should keep every chunk within the target duration` — fast-check EXTINF ≤ TARGETDURATION property. Verify: test passes.
 

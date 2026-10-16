@@ -1,6 +1,6 @@
 import fc from 'fast-check';
 import { expect, it } from 'vitest';
-import { type Chunk, type Clip, type Lineup, publishedCount } from './lineup.ts';
+import { type Chunk, chunkAt, type Clip, type Lineup, publishedCount } from './lineup.ts';
 import { type LivePlaylist, livePlaylist, WINDOW_SIZE } from './live-playlist.ts';
 
 it('should map each position to the same chunk in every playlist', () => {
@@ -41,6 +41,30 @@ it('should list consecutive positions up to the window size', () => {
         playlist && { mediaSequence: playlist.mediaSequence, positions: playlist.chunks.map((chunk) => chunk.position) },
       ).toEqual(count === 0 ? undefined : { mediaSequence: positions[0], positions });
     }),
+  );
+});
+
+it('should follow the clock', () => {
+  fc.assert(
+    fc.property(
+      scenario().filter(({ lineup, start, t1 }) => livePlaylist(lineup, start, at(start, t1)) !== undefined),
+      ({ lineup, start, t1 }) => {
+        const playlist = livePlaylist(lineup, start, at(start, t1));
+
+        const last = playlist?.chunks.at(-1);
+        const next = last && chunkAt(lineup, last.position + 1);
+        const totalChunks = lineup.once.flatMap((clip) => clip.chunkDurationsMs).length;
+        expect({
+          lastIsPublished: last !== undefined && endOf(last) <= t1,
+          nextIsUnpublished: next === undefined || endOf(next) > t1,
+          ended: playlist?.ended,
+        }).toEqual({
+          lastIsPublished: true,
+          nextIsUnpublished: true,
+          ended: lineup.loop.length === 0 && last?.position === totalChunks - 1,
+        });
+      },
+    ),
   );
 });
 
@@ -109,6 +133,10 @@ function isNotBehind(later: LivePlaylist | undefined, earlier: LivePlaylist): bo
     later.mediaSequence >= earlier.mediaSequence &&
     later.discontinuitySequence >= earlier.discontinuitySequence
   );
+}
+
+function endOf(chunk: Chunk): number {
+  return chunk.startMs + chunk.durationMs;
 }
 
 function hasDiscontinuity(chunk: Chunk): boolean {
