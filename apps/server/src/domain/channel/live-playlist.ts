@@ -18,7 +18,13 @@ export function livePlaylist(lineup: Lineup, start: Date, now: Date): LivePlayli
   const chunks = Array.from({ length: count - windowStart }, (_, index) => chunkAt(lineup, windowStart + index)).filter(
     (chunk) => chunk !== undefined,
   );
-  return { mediaSequence: chunks[0]?.position ?? 0, discontinuitySequence: 0, chunks, ended: false, start };
+  return {
+    mediaSequence: chunks[0]?.position ?? 0,
+    discontinuitySequence: windowStart === 0 ? 0 : (chunkAt(lineup, windowStart - 1)?.occurrence ?? 0),
+    chunks,
+    ended: false,
+    start,
+  };
 }
 
 /** EXTINF as (ms/1000).toFixed(3); DISCONTINUITY before isClipStart && position > 0; PROGRAM-DATE-TIME on first chunk and after each DISCONTINUITY. */

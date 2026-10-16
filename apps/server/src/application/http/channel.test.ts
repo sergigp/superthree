@@ -102,6 +102,41 @@ it('should mark the start of the next clip', async () => {
   });
 });
 
+it('should loop the card', async () => {
+  const app = buildApp(defaultLineup(epA, epB, card), fixedClock(at(64_080)), '/nonexistent');
+
+  const response = await app.request('/tv/live.m3u8');
+
+  expect(await playlistResponse(response)).toEqual({
+    status: 200,
+    contentType: 'application/vnd.apple.mpegurl',
+    cacheControl: 'no-cache',
+    body: [
+      ...header(6, 2),
+      '#EXT-X-PROGRAM-DATE-TIME:2026-10-16T18:00:28.080Z',
+      '#EXTINF:6.000,',
+      'media/card/seg_0001.ts',
+      '#EXT-X-DISCONTINUITY',
+      '#EXT-X-PROGRAM-DATE-TIME:2026-10-16T18:00:34.080Z',
+      '#EXTINF:6.000,',
+      'media/card/seg_0000.ts',
+      '#EXTINF:6.000,',
+      'media/card/seg_0001.ts',
+      '#EXT-X-DISCONTINUITY',
+      '#EXT-X-PROGRAM-DATE-TIME:2026-10-16T18:00:46.080Z',
+      '#EXTINF:6.000,',
+      'media/card/seg_0000.ts',
+      '#EXTINF:6.000,',
+      'media/card/seg_0001.ts',
+      '#EXT-X-DISCONTINUITY',
+      '#EXT-X-PROGRAM-DATE-TIME:2026-10-16T18:00:58.080Z',
+      '#EXTINF:6.000,',
+      'media/card/seg_0000.ts',
+      '',
+    ].join('\n'),
+  });
+});
+
 function buildApp(lineup: Lineup, clock: Clock, mediaDir: string) {
   const db = unmigratedTestDatabase();
   const shows = createSqliteShowRepository(db);
