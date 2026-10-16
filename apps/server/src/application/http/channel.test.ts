@@ -1,5 +1,8 @@
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { pino } from 'pino';
-import { expect, it } from 'vitest';
+import { afterAll, expect, it } from 'vitest';
 import { defaultLineup, endingLineup, type Lineup } from '../../domain/channel/lineup.ts';
 import { createShowCreator } from '../../domain/services/show-creator.ts';
 import { createShowDeleter } from '../../domain/services/show-deleter.ts';
@@ -16,9 +19,15 @@ const start = new Date('2026-10-16T18:00:00.000Z');
 const epA = { id: 'ep-a', chunkDurationsMs: [6000, 6000, 2040] };
 const epB = { id: 'ep-b', chunkDurationsMs: [6000, 2040] };
 const card = { id: 'card', chunkDurationsMs: [6000, 6000] };
+const chunkBytes = new Uint8Array([0x47, 0x40, 0x00, 0x10, 0xff]);
+const mediaDir = mkdtempSync(join(tmpdir(), 'superthree-media-'));
+mkdirSync(join(mediaDir, 'card'));
+writeFileSync(join(mediaDir, 'card', 'seg_0001.ts'), chunkBytes);
+
+afterAll(() => rmSync(mediaDir, { recursive: true, force: true }));
 
 it('should serve the channel list', async () => {
-  const app = buildApp(defaultLineup(epA, epB, card), fixedClock(start), '/nonexistent');
+  const app = buildApp(defaultLineup(epA, epB, card), fixedClock(start), mediaDir);
 
   const response = await app.request('/tv/superthree.m3u', { headers: { Host: '192.168.1.10:8080' } });
 
@@ -34,7 +43,7 @@ it('should serve the channel list', async () => {
 });
 
 it('should serve the live playlist', async () => {
-  const app = buildApp(defaultLineup(epA, epB, card), fixedClock(at(12_000)), '/nonexistent');
+  const app = buildApp(defaultLineup(epA, epB, card), fixedClock(at(12_000)), mediaDir);
 
   const response = await app.request('/tv/live.m3u8');
 
@@ -56,7 +65,7 @@ it('should serve the live playlist', async () => {
 
 it('should slide the window to the last 6 published chunks', async () => {
   const longA = { id: 'ep-a', chunkDurationsMs: Array.from({ length: 10 }, () => 6000) };
-  const app = buildApp(endingLineup(longA, epB), fixedClock(at(50_000)), '/nonexistent');
+  const app = buildApp(endingLineup(longA, epB), fixedClock(at(50_000)), mediaDir);
 
   const response = await app.request('/tv/live.m3u8');
 
@@ -74,7 +83,7 @@ it('should slide the window to the last 6 published chunks', async () => {
 });
 
 it('should mark the start of the next clip', async () => {
-  const app = buildApp(defaultLineup(epA, epB, card), fixedClock(at(22_080)), '/nonexistent');
+  const app = buildApp(defaultLineup(epA, epB, card), fixedClock(at(22_080)), mediaDir);
 
   const response = await app.request('/tv/live.m3u8');
 
@@ -103,7 +112,7 @@ it('should mark the start of the next clip', async () => {
 });
 
 it('should loop the card', async () => {
-  const app = buildApp(defaultLineup(epA, epB, card), fixedClock(at(64_080)), '/nonexistent');
+  const app = buildApp(defaultLineup(epA, epB, card), fixedClock(at(64_080)), mediaDir);
 
   const response = await app.request('/tv/live.m3u8');
 
@@ -138,7 +147,7 @@ it('should loop the card', async () => {
 });
 
 it('should end the broadcast', async () => {
-  const app = buildApp(endingLineup(epA, epB), fixedClock(at(3_600_000)), '/nonexistent');
+  const app = buildApp(endingLineup(epA, epB), fixedClock(at(3_600_000)), mediaDir);
 
   const response = await app.request('/tv/live.m3u8');
 
@@ -168,8 +177,8 @@ it('should end the broadcast', async () => {
 });
 
 it('should fail to serve the playlist before the first chunk is published', async () => {
-  const beforeStart = buildApp(defaultLineup(epA, epB, card), fixedClock(at(-1_000)), '/nonexistent');
-  const duringFirstChunk = buildApp(defaultLineup(epA, epB, card), fixedClock(at(3_000)), '/nonexistent');
+  const beforeStart = buildApp(defaultLineup(epA, epB, card), fixedClock(at(-1_000)), mediaDir);
+  const duringFirstChunk = buildApp(defaultLineup(epA, epB, card), fixedClock(at(3_000)), mediaDir);
 
   const responses = [await beforeStart.request('/tv/live.m3u8'), await duringFirstChunk.request('/tv/live.m3u8')];
 
@@ -179,6 +188,18 @@ it('should fail to serve the playlist before the first chunk is published', asyn
     { status: 503, body: '{"error":"Channel has not started yet"}' },
     { status: 503, body: '{"error":"Channel has not started yet"}' },
   ]);
+});
+
+it('should serve a chunk', async () => {
+  const app = buildApp(defaultLineup(epA, epB, card), fixedClock(start), mediaDir);
+
+  const response = await app.request('/tv/media/card/seg_0001.ts');
+
+  expect({
+    status: response.status,
+    contentType: response.headers.get('content-type'),
+    body: new Uint8Array(await response.arrayBuffer()),
+  }).toEqual({ status: 200, contentType: 'video/mp2t', body: chunkBytes });
 });
 
 function buildApp(lineup: Lineup, clock: Clock, mediaDir: string) {
