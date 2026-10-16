@@ -7,7 +7,7 @@
 - [x] 2.1 `should serve the channel list` — `/tv/superthree.m3u` returns the one-channel M3U pointing to `http://<Host>/tv/live.m3u8`. Verify: test passes.
 - [x] 2.2 `should serve the live playlist` — just after start, exact playlist text with positions 0–1, headers, PDT, no ENDLIST. Verify: test passes.
 - [x] 2.3 `should slide the window to the last 6 published chunks` — window and `MEDIA-SEQUENCE` follow the clock. Verify: test passes.
-- [ ] 2.4 `should mark the start of the next clip` — DISCONTINUITY + PDT at A → B, real 2.040 s EXTINF. Verify: test passes.
+- [x] 2.4 `should mark the start of the next clip` — DISCONTINUITY + PDT at A → B, real 2.040 s EXTINF. Verify: test passes.
 - [ ] 2.5 `should loop the card` — card repeats with a discontinuity each loop and correct `DISCONTINUITY-SEQUENCE`. Verify: test passes.
 - [ ] 2.6 `should end the broadcast` — ending lineup freezes on B's last chunks with `#EXT-X-ENDLIST`. Verify: test passes.
 - [ ] 2.7 `should fail to serve the playlist before the first chunk is published` — 503 before start and during the first chunk. Verify: test passes.

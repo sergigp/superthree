@@ -21,7 +21,7 @@ export function livePlaylist(lineup: Lineup, start: Date, now: Date): LivePlayli
   return { mediaSequence: chunks[0]?.position ?? 0, discontinuitySequence: 0, chunks, ended: false, start };
 }
 
-/** EXTINF as (ms/1000).toFixed(3); PROGRAM-DATE-TIME on the first chunk. */
+/** EXTINF as (ms/1000).toFixed(3); DISCONTINUITY before isClipStart && position > 0; PROGRAM-DATE-TIME on first chunk and after each DISCONTINUITY. */
 export function renderLivePlaylist(playlist: LivePlaylist): string {
   const lines = [
     '#EXTM3U',
@@ -36,8 +36,10 @@ export function renderLivePlaylist(playlist: LivePlaylist): string {
 }
 
 function chunkLines(chunk: Chunk, index: number, start: Date): string[] {
+  const discontinuity = chunk.isClipStart && chunk.position > 0;
   return [
-    ...(index === 0 ? [`#EXT-X-PROGRAM-DATE-TIME:${programDateTime(chunk, start)}`] : []),
+    ...(discontinuity ? ['#EXT-X-DISCONTINUITY'] : []),
+    ...(index === 0 || discontinuity ? [`#EXT-X-PROGRAM-DATE-TIME:${programDateTime(chunk, start)}`] : []),
     `#EXTINF:${(chunk.durationMs / 1000).toFixed(3)},`,
     chunk.uri,
   ];
