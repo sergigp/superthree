@@ -202,6 +202,22 @@ it('should serve a chunk', async () => {
   }).toEqual({ status: 200, contentType: 'video/mp2t', body: chunkBytes });
 });
 
+it('should fail to serve a chunk that does not exist', async () => {
+  const app = buildApp(defaultLineup(epA, epB, card), fixedClock(start), mediaDir);
+
+  const responses = [
+    await app.request('/tv/media/card/seg_9999.ts'),
+    await app.request('/tv/media/..%2F..%2Fpackage.json'),
+  ];
+
+  expect(
+    await Promise.all(responses.map(async (response) => ({ status: response.status, body: await response.text() }))),
+  ).toEqual([
+    { status: 404, body: '{"error":"Route GET /tv/media/card/seg_9999.ts not found"}' },
+    { status: 404, body: '{"error":"Route GET /tv/media/..%2F..%2Fpackage.json not found"}' },
+  ]);
+});
+
 function buildApp(lineup: Lineup, clock: Clock, mediaDir: string) {
   const db = unmigratedTestDatabase();
   const shows = createSqliteShowRepository(db);
