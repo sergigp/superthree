@@ -1,7 +1,7 @@
 import fc from 'fast-check';
 import { expect, it } from 'vitest';
-import type { Chunk, Clip, Lineup } from './lineup.ts';
-import { type LivePlaylist, livePlaylist } from './live-playlist.ts';
+import { type Chunk, type Clip, type Lineup, publishedCount } from './lineup.ts';
+import { type LivePlaylist, livePlaylist, WINDOW_SIZE } from './live-playlist.ts';
 
 it('should map each position to the same chunk in every playlist', () => {
   fc.assert(
@@ -25,6 +25,21 @@ it('should never move sequence numbers backwards', () => {
       const second = livePlaylist(lineup, start, at(start, t2));
 
       expect(first === undefined || isNotBehind(second, first)).toBe(true);
+    }),
+  );
+});
+
+it('should list consecutive positions up to the window size', () => {
+  fc.assert(
+    fc.property(scenario(), ({ lineup, start, t1 }) => {
+      const playlist = livePlaylist(lineup, start, at(start, t1));
+
+      const count = publishedCount(lineup, t1);
+      const length = Math.min(WINDOW_SIZE, count);
+      const positions = Array.from({ length }, (_, index) => count - length + index);
+      expect(
+        playlist && { mediaSequence: playlist.mediaSequence, positions: playlist.chunks.map((chunk) => chunk.position) },
+      ).toEqual(count === 0 ? undefined : { mediaSequence: positions[0], positions });
     }),
   );
 });
