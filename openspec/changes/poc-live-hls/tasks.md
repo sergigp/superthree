@@ -23,7 +23,7 @@
 
 ## 3. Infrastructure adapters (TDD)
 
-- [ ] 3.1 VOD playlist reader: `should read chunk durations from a VOD playlist` — parses ffmpeg `index.m3u8` into ms durations. Verify: test passes.
+- [x] 3.1 VOD playlist reader: `should read chunk durations from a VOD playlist` — parses ffmpeg `index.m3u8` into ms durations. Verify: test passes.
 
 ## 4. Verification
 
