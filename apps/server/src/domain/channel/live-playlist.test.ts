@@ -1,7 +1,7 @@
 import fc from 'fast-check';
 import { expect, it } from 'vitest';
 import { type Chunk, chunkAt, type Clip, type Lineup, publishedCount } from './lineup.ts';
-import { type LivePlaylist, livePlaylist, WINDOW_SIZE } from './live-playlist.ts';
+import { type LivePlaylist, livePlaylist, renderLivePlaylist, TARGET_DURATION_S, WINDOW_SIZE } from './live-playlist.ts';
 
 it('should map each position to the same chunk in every playlist', () => {
   fc.assert(
@@ -47,7 +47,7 @@ it('should list consecutive positions up to the window size', () => {
 it('should follow the clock', () => {
   fc.assert(
     fc.property(
-      scenario().filter(({ lineup, start, t1 }) => livePlaylist(lineup, start, at(start, t1)) !== undefined),
+      onAirScenario(),
       ({ lineup, start, t1 }) => {
         const playlist = livePlaylist(lineup, start, at(start, t1));
 
@@ -82,6 +82,24 @@ it('should agree with a naive expansion of the lineup', () => {
   );
 });
 
+it('should keep every chunk within the target duration', () => {
+  fc.assert(
+    fc.property(
+      onAirScenario(),
+      ({ lineup, start, t1 }) => {
+        const playlist = livePlaylist(lineup, start, at(start, t1));
+
+        const lines = playlist === undefined ? [] : renderLivePlaylist(playlist).split('\n');
+        const durationsS = lines.filter((line) => line.startsWith('#EXTINF:')).map((line) => Number.parseFloat(line.slice(8)));
+        expect({
+          targetDuration: lines.find((line) => line.startsWith('#EXT-X-TARGETDURATION:')),
+          overTarget: durationsS.filter((seconds) => Math.round(seconds) > TARGET_DURATION_S),
+        }).toEqual({ targetDuration: `#EXT-X-TARGETDURATION:${TARGET_DURATION_S}`, overTarget: [] });
+      },
+    ),
+  );
+});
+
 interface Scenario {
   readonly lineup: Lineup;
   readonly start: Date;
@@ -103,6 +121,11 @@ function scenario(): fc.Arbitrary<Scenario> {
       })
       .map(({ deltaMs, ...rest }) => ({ ...rest, t2: rest.t1 + deltaMs }));
   });
+}
+
+/** A scenario whose t1 playlist has at least one published chunk. */
+function onAirScenario(): fc.Arbitrary<Scenario> {
+  return scenario().filter(({ lineup, start, t1 }) => livePlaylist(lineup, start, at(start, t1)) !== undefined);
 }
 
 function lineupArbitrary(): fc.Arbitrary<Lineup> {
