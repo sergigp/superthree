@@ -167,6 +167,20 @@ it('should end the broadcast', async () => {
   });
 });
 
+it('should fail to serve the playlist before the first chunk is published', async () => {
+  const beforeStart = buildApp(defaultLineup(epA, epB, card), fixedClock(at(-1_000)), '/nonexistent');
+  const duringFirstChunk = buildApp(defaultLineup(epA, epB, card), fixedClock(at(3_000)), '/nonexistent');
+
+  const responses = [await beforeStart.request('/tv/live.m3u8'), await duringFirstChunk.request('/tv/live.m3u8')];
+
+  expect(
+    await Promise.all(responses.map(async (response) => ({ status: response.status, body: await response.text() }))),
+  ).toEqual([
+    { status: 503, body: '{"error":"Channel has not started yet"}' },
+    { status: 503, body: '{"error":"Channel has not started yet"}' },
+  ]);
+});
+
 function buildApp(lineup: Lineup, clock: Clock, mediaDir: string) {
   const db = unmigratedTestDatabase();
   const shows = createSqliteShowRepository(db);

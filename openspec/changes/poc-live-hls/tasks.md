@@ -10,7 +10,7 @@
 - [x] 2.4 `should mark the start of the next clip` — DISCONTINUITY + PDT at A → B, real 2.040 s EXTINF. Verify: test passes.
 - [x] 2.5 `should loop the card` — card repeats with a discontinuity each loop and correct `DISCONTINUITY-SEQUENCE`. Verify: test passes.
 - [x] 2.6 `should end the broadcast` — ending lineup freezes on B's last chunks with `#EXT-X-ENDLIST`. Verify: test passes.
-- [ ] 2.7 `should fail to serve the playlist before the first chunk is published` — 503 before start and during the first chunk. Verify: test passes.
+- [x] 2.7 `should fail to serve the playlist before the first chunk is published` — 503 before start and during the first chunk. Verify: test passes.
 - [ ] 2.8 `should serve a chunk` — `/tv/media/...` as `video/mp2t` with exact bytes. Verify: test passes.
 - [ ] 2.9 `should fail to serve a chunk that does not exist` — missing file and traversal → 404. Verify: test passes.
 - [ ] 2.10 `should route channel paths ahead of the web app` — `/tv/*` never falls to the SPA; no `channel` → 404. Verify: test passes.

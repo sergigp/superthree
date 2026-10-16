@@ -14,12 +14,15 @@ export interface LivePlaylist {
 /** undefined until the first chunk is published (incl. before start). */
 export function livePlaylist(lineup: Lineup, start: Date, now: Date): LivePlaylist | undefined {
   const count = publishedCount(lineup, now.getTime() - start.getTime());
+  if (count === 0) {
+    return undefined;
+  }
   const windowStart = Math.max(0, count - WINDOW_SIZE);
   const chunks = Array.from({ length: count - windowStart }, (_, index) => chunkAt(lineup, windowStart + index)).filter(
     (chunk) => chunk !== undefined,
   );
   return {
-    mediaSequence: chunks[0]?.position ?? 0,
+    mediaSequence: windowStart,
     discontinuitySequence: windowStart === 0 ? 0 : (chunkAt(lineup, windowStart - 1)?.occurrence ?? 0),
     chunks,
     ended: chunkAt(lineup, count) === undefined,
