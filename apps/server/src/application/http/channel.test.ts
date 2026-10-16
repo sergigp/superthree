@@ -1,6 +1,6 @@
 import { pino } from 'pino';
 import { expect, it } from 'vitest';
-import { defaultLineup, type Lineup } from '../../domain/channel/lineup.ts';
+import { defaultLineup, endingLineup, type Lineup } from '../../domain/channel/lineup.ts';
 import { createShowCreator } from '../../domain/services/show-creator.ts';
 import { createShowDeleter } from '../../domain/services/show-deleter.ts';
 import { createShowFinder } from '../../domain/services/show-finder.ts';
@@ -49,6 +49,25 @@ it('should serve the live playlist', async () => {
       'media/ep-a/seg_0000.ts',
       '#EXTINF:6.000,',
       'media/ep-a/seg_0001.ts',
+      '',
+    ].join('\n'),
+  });
+});
+
+it('should slide the window to the last 6 published chunks', async () => {
+  const longA = { id: 'ep-a', chunkDurationsMs: Array.from({ length: 10 }, () => 6000) };
+  const app = buildApp(endingLineup(longA, epB), fixedClock(at(50_000)), '/nonexistent');
+
+  const response = await app.request('/tv/live.m3u8');
+
+  expect(await playlistResponse(response)).toEqual({
+    status: 200,
+    contentType: 'application/vnd.apple.mpegurl',
+    cacheControl: 'no-cache',
+    body: [
+      ...header(2, 0),
+      '#EXT-X-PROGRAM-DATE-TIME:2026-10-16T18:00:12.000Z',
+      ...[2, 3, 4, 5, 6, 7].flatMap((index) => ['#EXTINF:6.000,', `media/ep-a/seg_000${index}.ts`]),
       '',
     ].join('\n'),
   });

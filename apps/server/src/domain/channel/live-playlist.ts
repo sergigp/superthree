@@ -14,7 +14,8 @@ export interface LivePlaylist {
 /** undefined until the first chunk is published (incl. before start). */
 export function livePlaylist(lineup: Lineup, start: Date, now: Date): LivePlaylist | undefined {
   const count = publishedCount(lineup, now.getTime() - start.getTime());
-  const chunks = Array.from({ length: count }, (_, position) => chunkAt(lineup, position)).filter(
+  const windowStart = Math.max(0, count - WINDOW_SIZE);
+  const chunks = Array.from({ length: count - windowStart }, (_, index) => chunkAt(lineup, windowStart + index)).filter(
     (chunk) => chunk !== undefined,
   );
   return { mediaSequence: chunks[0]?.position ?? 0, discontinuitySequence: 0, chunks, ended: false, start };
