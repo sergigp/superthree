@@ -13,7 +13,7 @@
 - [x] 2.7 `should fail to serve the playlist before the first chunk is published` — 503 before start and during the first chunk. Verify: test passes.
 - [x] 2.8 `should serve a chunk` — `/tv/media/...` as `video/mp2t` with exact bytes. Verify: test passes.
 - [x] 2.9 `should fail to serve a chunk that does not exist` — missing file and traversal → 404. Verify: test passes.
-- [ ] 2.10 `should route channel paths ahead of the web app` — `/tv/*` never falls to the SPA; no `channel` → 404. Verify: test passes.
+- [x] 2.10 `should route channel paths ahead of the web app` — `/tv/*` never falls to the SPA; no `channel` → 404. Verify: test passes.
 - [ ] 2.11 `should map each position to the same chunk in every playlist` — fast-check stability property. Verify: test passes.
 - [ ] 2.12 `should never move sequence numbers backwards` — fast-check monotonicity property. Verify: test passes.
 - [ ] 2.13 `should list consecutive positions up to the window size` — fast-check window shape property. Verify: test passes.

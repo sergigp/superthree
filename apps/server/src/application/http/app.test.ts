@@ -3,6 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pino } from 'pino';
 import { afterAll, expect, it } from 'vitest';
+import { defaultLineup } from '../../domain/channel/lineup.ts';
 import { createShowCreator } from '../../domain/services/show-creator.ts';
 import { createShowDeleter } from '../../domain/services/show-deleter.ts';
 import { createShowFinder } from '../../domain/services/show-finder.ts';
@@ -12,12 +13,19 @@ import { fixedClock } from '../../infrastructure/shared/clock.ts';
 import { sequentialIds } from '../../infrastructure/shared/id-generator.ts';
 import { unmigratedTestDatabase } from '../../infrastructure/shared/test-database.ts';
 import { createSqliteTransactor } from '../../infrastructure/shared/transactor.ts';
-import { createApp } from './app.ts';
+import { type AppOptions, createApp } from './app.ts';
 
 const webDist = mkdtempSync(join(tmpdir(), 'superthree-web-dist-'));
 writeFileSync(join(webDist, 'index.html'), '<!doctype html><title>Superthree</title>');
+const mediaDir = mkdtempSync(join(tmpdir(), 'superthree-media-'));
+const start = new Date('2026-10-16T18:00:00.000Z');
+const clip = { id: 'card', chunkDurationsMs: [6000] };
+const channel = { lineup: defaultLineup(clip, clip, clip), start, clock: fixedClock(new Date('2026-10-16T18:00:30.000Z')), mediaDir };
 
-afterAll(() => rmSync(webDist, { recursive: true, force: true }));
+afterAll(() => {
+  rmSync(webDist, { recursive: true, force: true });
+  rmSync(mediaDir, { recursive: true, force: true });
+});
 
 it('should fail to route an unknown api path', async () => {
   const app = buildApp();
@@ -41,7 +49,26 @@ it('should serve the web app for an unknown non-api path', async () => {
   });
 });
 
-function buildApp() {
+it('should route channel paths ahead of the web app', async () => {
+  const withChannel = buildApp({ webDist, channel });
+  const withoutChannel = buildApp({ webDist });
+
+  const responses = [
+    await withChannel.request('/tv/live.m3u8'),
+    await withChannel.request('/tv/nope'),
+    await withoutChannel.request('/tv/live.m3u8'),
+  ];
+
+  expect(
+    responses.map((response) => ({ status: response.status, contentType: response.headers.get('content-type') })),
+  ).toEqual([
+    { status: 200, contentType: 'application/vnd.apple.mpegurl' },
+    { status: 404, contentType: 'application/json' },
+    { status: 404, contentType: 'application/json' },
+  ]);
+});
+
+function buildApp(options: AppOptions = { webDist }) {
   const db = unmigratedTestDatabase();
   const shows = createSqliteShowRepository(db);
   const clock = fixedClock(new Date('2026-10-14T10:00:00.000Z'));
@@ -53,6 +80,6 @@ function buildApp() {
       deleter: createShowDeleter(shows),
     },
     pino({ level: 'silent' }),
-    { webDist },
+    options,
   );
 }
