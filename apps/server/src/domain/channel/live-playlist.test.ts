@@ -68,6 +68,20 @@ it('should follow the clock', () => {
   );
 });
 
+it('should agree with a naive expansion of the lineup', () => {
+  fc.assert(
+    fc.property(lineupArbitrary(), (lineup) => {
+      const expected = naiveExpansion(lineup, 3);
+
+      const positions = Array.from({ length: expected.length }, (_, position) => position);
+      expect({
+        chunks: positions.map((position) => chunkAt(lineup, position)),
+        pastFiniteEnd: lineup.loop.length === 0 ? chunkAt(lineup, expected.length) : undefined,
+      }).toEqual({ chunks: expected, pastFiniteEnd: undefined });
+    }),
+  );
+});
+
 interface Scenario {
   readonly lineup: Lineup;
   readonly start: Date;
@@ -125,6 +139,29 @@ function stableView(playlist: LivePlaylist | undefined, position: number) {
     startMs: chunk?.startMs,
     discontinuity: (playlist?.discontinuitySequence ?? 0) + chunks.slice(0, index + 1).filter(hasDiscontinuity).length,
   };
+}
+
+/** Airs `once`, then `loop` the given number of times, chunk by chunk. */
+function naiveExpansion(lineup: Lineup, loops: number): Chunk[] {
+  const clips = [...lineup.once, ...Array.from({ length: loops }, () => lineup.loop).flat()];
+  const chunks: Chunk[] = [];
+  let startMs = 0;
+  clips.forEach((clip, occurrence) => {
+    clip.chunkDurationsMs.forEach((durationMs, chunkIndex) => {
+      chunks.push({
+        position: chunks.length,
+        clipId: clip.id,
+        chunkIndex,
+        occurrence,
+        isClipStart: chunkIndex === 0,
+        startMs,
+        durationMs,
+        uri: `media/${clip.id}/seg_${String(chunkIndex).padStart(4, '0')}.ts`,
+      });
+      startMs += durationMs;
+    });
+  });
+  return chunks;
 }
 
 function isNotBehind(later: LivePlaylist | undefined, earlier: LivePlaylist): boolean {
