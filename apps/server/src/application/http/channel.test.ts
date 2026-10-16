@@ -33,6 +33,27 @@ it('should serve the channel list', async () => {
   });
 });
 
+it('should serve the live playlist', async () => {
+  const app = buildApp(defaultLineup(epA, epB, card), fixedClock(at(12_000)), '/nonexistent');
+
+  const response = await app.request('/tv/live.m3u8');
+
+  expect(await playlistResponse(response)).toEqual({
+    status: 200,
+    contentType: 'application/vnd.apple.mpegurl',
+    cacheControl: 'no-cache',
+    body: [
+      ...header(0, 0),
+      '#EXT-X-PROGRAM-DATE-TIME:2026-10-16T18:00:00.000Z',
+      '#EXTINF:6.000,',
+      'media/ep-a/seg_0000.ts',
+      '#EXTINF:6.000,',
+      'media/ep-a/seg_0001.ts',
+      '',
+    ].join('\n'),
+  });
+});
+
 function buildApp(lineup: Lineup, clock: Clock, mediaDir: string) {
   const db = unmigratedTestDatabase();
   const shows = createSqliteShowRepository(db);
@@ -46,4 +67,28 @@ function buildApp(lineup: Lineup, clock: Clock, mediaDir: string) {
     pino({ level: 'silent' }),
     { channel: { lineup, start, clock, mediaDir } },
   );
+}
+
+function at(elapsedMs: number): Date {
+  return new Date(start.getTime() + elapsedMs);
+}
+
+function header(mediaSequence: number, discontinuitySequence: number): string[] {
+  return [
+    '#EXTM3U',
+    '#EXT-X-VERSION:3',
+    '#EXT-X-TARGETDURATION:6',
+    '#EXT-X-INDEPENDENT-SEGMENTS',
+    `#EXT-X-MEDIA-SEQUENCE:${mediaSequence}`,
+    `#EXT-X-DISCONTINUITY-SEQUENCE:${discontinuitySequence}`,
+  ];
+}
+
+async function playlistResponse(response: Response) {
+  return {
+    status: response.status,
+    contentType: response.headers.get('content-type'),
+    cacheControl: response.headers.get('cache-control'),
+    body: await response.text(),
+  };
 }
